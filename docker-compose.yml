@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+    # PHP Service: Main logic and file system
+    php:
+        build: .
+        volumes:
+            - ./src:/var/www/html/src
+            - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+        restart: always
+        depends_on:
+            - db
+        environment:
+            DB_HOST: db
+            DB_NAME: corporate_keys
+            DB_USER: corporate_keys
+            DB_PASSWORD: corporate_keys
+
+    db:
+        image: mysql:8.0
+        container_name: mysql_db
+        restart: always
+        environment:
+            MYSQL_DATABASE: corporate_keys
+            MYSQL_USER: corporate_keys
+            MYSQL_PASSWORD: corporate_keys
+            MYSQL_ROOT_PASSWORD: root
+        volumes:
+            - db_data:/var/lib/mysql 
+            - ./init-db:/docker-entrypoint-initdb.d
+        ports:
+            - "3306:3306"
+
+    # Nginx: This is the web server
+    nginx: 
+        image: nginx:latest
+        ports:
+            - "8080:80"
+        volumes:
+            - ./src:/var/www/html/src
+            - ./default.conf:/etc/nginx/conf.d/default.conf
+        depends_on: 
+            - php
+        restart: always    
+
+volumes: 
+    db_data: 
