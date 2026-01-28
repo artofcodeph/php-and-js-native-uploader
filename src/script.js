@@ -8,7 +8,7 @@ $(document).ready(function () {
     // Close Edit Modal
     $('#closeEditModal').click(() => $('#editModal').hide());
 
-    // Fetch Images
+    // Fetch Images with Animation
     function fetchImages() {
         $.get({
             url: 'actions.php?action=fetch',
@@ -21,7 +21,7 @@ $(document).ready(function () {
                     $tbody.empty();
 
                     images.forEach(img => {
-                        let $tr = $('<tr>');
+                        let $tr = $('<tr>').hide(); // Initially hide the row
 
                         // Thumbnail
                         let $img = $('<img>').attr('src', `uploads/${img.filename}`).attr('width', 50).addClass('thumb-preview');
@@ -58,6 +58,7 @@ $(document).ready(function () {
                         $tr.append($actionsTd);
 
                         $tbody.append($tr);
+                        $tr.fadeIn(); // Animate row insertion
                     });
                 } catch (e) {
                     console.error("Failed to process images:", e);
@@ -127,10 +128,11 @@ $(document).ready(function () {
             });
     });
 
-    // AJAX Delete
+    // AJAX Delete with Animation
     $(document).on('click', '.delete-btn', function () {
         if (confirm('Are you sure?')) {
             const id = $(this).data('id');
+            const $row = $(this).closest('tr');
             $.post({
                 url: 'actions.php',
                 data: { action: 'delete', id: id },
@@ -138,7 +140,9 @@ $(document).ready(function () {
             })
                 .done(function (response) {
                     if (response.status === 'success') {
-                        fetchImages();
+                        $row.fadeOut(function () {
+                            $row.remove(); // Remove row after fade-out
+                        });
                     } else {
                         alert('Delete failed.');
                     }
